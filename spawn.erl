@@ -104,7 +104,9 @@ buffer_manager(Buffer) ->
                     ConsumerPid ! {message, First},
                     buffer_manager(T);
 
-                [] ->  buffer_manager(Buffer)
+                [] -> 
+                    ConsumerPid ! { empty },
+                    buffer_manager(Buffer)
             end;
 
         _ -> buffer_manager(Buffer) % Ignora outras mensagens e vida que segue
@@ -130,7 +132,6 @@ consumer(PidBuf, Index) ->
     % |
     state_manager:update(consumer, Index, 0),
 
-
     %%%
     %
     % Dispara uma mensagem solicitando um produto
@@ -154,19 +155,15 @@ consumer(PidBuf, Index) ->
             delay(Type),
    
             % Após consumir o produto reinicia o ciclo.
+            consumer(PidBuf, Index);
+        
+        % Se não houver elementos no buffer
+        % um retorno é informado.
+        { empty } -> 
+            timer:sleep(100),
             consumer(PidBuf, Index)
     
-    %%%
-    %
-    % Se não houver resposta do gestor de buffer em
-    % 100 millis, irá chamar a função novamente, assumindo
-    % que o buffer estava vazio.
-    %
-    after 100 -> consumer( PidBuf, Index)
-
     end.
-
-
 
 
 %%%
@@ -186,17 +183,20 @@ start() ->
     {ok, _MPid} = state_manager:start_manager(),    
     {ok, _RPid} = state_renderer:start_renderer(),
 
-    
 
+    %%%
+    %
+    % Inicia o precesso de gestão do Buffer
+    %
     PidBuf = spawn(spawn, buffer_manager, []),
 
-    spawn(spawn, producer, [ PidBuf, 0 ]),
-    spawn(spawn, producer, [ PidBuf, 1 ]),
-      
-    spawn(spawn, consumer, [ PidBuf, 0 ]),
-    spawn(spawn, consumer, [ PidBuf, 1 ]),
-    spawn(spawn, consumer, [ PidBuf, 2 ]),
-    spawn(spawn, consumer, [ PidBuf, 3 ]).
+
+    %%%
+    %
+    % Inicia os processos produtores e consumidores
+    %
+    [spawn(spawn, producer, [ PidBuf, X ]) || X <- lists:seq(0, 1)],
+    [spawn(spawn, consumer, [ PidBuf, X ]) || X <- lists:seq(0, 3)].
     
 
 
