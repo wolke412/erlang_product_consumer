@@ -21,18 +21,20 @@ get_current_timestamp() ->
     {MegaSecs, Secs, MicroSecs} = os:timestamp(),
     (MegaSecs * 1000000 + Secs) * 1000 + MicroSecs div 1000.
 
-% Função de produção;
-% Se não um tipo definido, um aleatório será gerado.
+%%%
+%
+% Função produtora;
+% Se não houver um tipo definido, um aleatório será gerado.
+%
 producer(PidBuf, Index) -> producer(PidBuf, Index, rand:uniform(2) - 1). % 0 ou 1
 producer(PidBuf, Index, Type) ->
     
-    %%%
-    % 
-    % Chama a função do módulo responsável
-    % por gerir o estado da "interface gráfica".
-    % 
-    % Não afeta o funcionamento do sistema!
-    % 
+    % [!]-----------------------------------------
+    % | Chama uma função do módulo responsável
+    % | por gerir o estado da "interface gráfica".
+    % +-------------------------------------------
+    % | Não afeta o funcionamento do sistema!
+    % |
     state_manager:update(producer, Index, { Type, get_current_timestamp()}),
 
     delay(Type),
@@ -60,14 +62,12 @@ delay(X) -> timer:sleep(get_delay(X)).
 buffer_manager() -> buffer_manager([]).
 buffer_manager(Buffer) ->
 
-
-    %%%
-    % 
-    % Chama a função do módulo responsável
-    % por gerir o estado da "interface gráfica".
-    % 
-    % Não afeta o funcionamento do sistema!
-    % 
+    % [!]-----------------------------------------
+    % | Chama uma função do módulo responsável
+    % | por gerir o estado da "interface gráfica".
+    % +-------------------------------------------
+    % | Não afeta o funcionamento do sistema!
+    % |
     state_manager:update(buffer, Buffer),
     
     %%%
@@ -113,37 +113,40 @@ buffer_manager(Buffer) ->
 %%%
 %
 % Função que virá a se tornar um processo
-% "Consumidor". Irá consumir 
+% "Consumidor". 
+% Irá consumir, de forma cíclica, os produtos
+% do buffer compartilhado.
 % 
 % PidBuf => PID do gerenciador de buffer
 % Index  => Índice deste consumidor.
 %
 consumer(PidBuf, Index) ->
     
- 
-    %%%
-    % 
-    % Chama a função do módulo responsável
-    % por gerir o estado da "interface gráfica".
-    % 
-    % Não afeta o funcionamento do sistema!
-    %    
+    % [!]-----------------------------------------
+    % | Chama uma função do módulo responsável
+    % | por gerir o estado da "interface gráfica".
+    % +-------------------------------------------
+    % | Não afeta o funcionamento do sistema!
+    % |
     state_manager:update(consumer, Index, 0),
 
 
-
+    %%%
+    %
+    % Dispara uma mensagem solicitando um produto
+    % ao gestor do buffer.
+    %
     PidBuf ! { consume, self() },
 
     receive
         { message, Type } ->
 
-            %%%
-            % 
-            % Chama a função do módulo responsável
-            % por gerir o estado da "interface gráfica".
-            % 
-            % Não afeta o funcionamento do sistema!
-            %    
+            % [!]-----------------------------------------
+            % | Chama uma função do módulo responsável
+            % | por gerir o estado da "interface gráfica".
+            % +-------------------------------------------
+            % | Não afeta o funcionamento do sistema!
+            % |
             state_manager:update(consumer, Index, { Type, get_current_timestamp() }),
 
             % Já que precisa ser o dobro do tempo
@@ -172,10 +175,14 @@ consumer(PidBuf, Index) ->
 %
 start() ->
 
-    %%%
-    %
-    % 
-    %
+    % [!]-----------------------------------------
+    % | Inicia os módulos responsáveis pela 
+    % | "interface gráfica".
+    % +-------------------------------------------
+    % | Os módulos *NÃO* afetam o funcionamento 
+    % | do sistema!
+    % |
+            
     {ok, _MPid} = state_manager:start_manager(),    
     {ok, _RPid} = state_renderer:start_renderer(),
 
