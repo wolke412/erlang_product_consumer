@@ -1,6 +1,6 @@
 # Erlang Produtor Cosumidor (The Bounded Buffer Problem)
 
-## First step is to make sure Bash script are runnable 
+## First step is to make sure Bash scripts are runnable 
 ```
   sudo chmod +x *.bs
 ```
