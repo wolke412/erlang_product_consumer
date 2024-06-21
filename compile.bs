@@ -1,0 +1,11 @@
+#!/bin/bash
+
+arr=(*.erl)
+
+for ((i=0; i<${#arr[@]}; i++)); do
+    echo "Compiling ${arr[$i]}..."
+    erlc ${arr[$i]}
+done
+echo "Done."
+
+#erl -noshell -s spawn start
